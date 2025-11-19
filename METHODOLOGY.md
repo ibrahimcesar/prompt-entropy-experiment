@@ -90,54 +90,171 @@ We use **temperature=1.0** as the baseline for this research for three important
 - ✓ **Generalizable**: Neither suppressed (production) nor amplified (exploration)
 - ✓ **Information-theoretic validity**: True measure of model's natural entropy
 
-### Multi-Temperature Studies (Advanced)
+## Theoretical Framework and Hypotheses
 
-To ensure our findings are robust, we recommend testing at multiple temperatures **symmetrically around the baseline**:
+### Information-Theoretic Predictions
 
-**Temperature Range:**
-- **Production range** (0.5, 0.7): Real-world deployment settings
-- **Baseline** (1.0): Natural, unscaled probability distribution
-- **Latent space exploration** (1.2, 1.5): Exploring model's full knowledge range
+**Temperature's Effect on Entropy (Known):**
 
-This symmetric design tests three distinct regimes:
-1. **Production**: Does the effect hold in real-world settings?
-2. **Baseline**: What is the effect at the theoretically pure distribution?
-3. **Exploration**: Does the effect persist when exploring latent space?
+Temperature scales logits before softmax: `p(token) = exp(logit/T) / Σ exp(logit_i/T)`
+
+This guarantees:
+- **T < 1.0**: Distribution becomes more peaked → Lower entropy
+- **T = 1.0**: Natural distribution → Baseline entropy
+- **T > 1.0**: Distribution becomes flatter → Higher entropy
+
+**The Critical Research Question:**
+
+Not *whether* entropy changes with temperature (it will), but:
+
+> **Does the DIFFERENCE in entropy between specification-driven and vague prompts persist across sampling regimes?**
+
+### Formal Hypotheses
+
+**H1: Main Effect of Prompt Type (Primary Hypothesis)**
+```
+H₁: μ_entropy(vague) > μ_entropy(specification)  for all T ∈ {0.7, 1.0, 1.2}
+```
+- Specification prompts constrain the output space via mutual information
+- This constraint is information-theoretic, not sampling-dependent
+- Effect should persist across all temperatures
+
+**H2: Main Effect of Temperature (Guaranteed by Math)**
+```
+H₂: μ_entropy(T=0.7) < μ_entropy(T=1.0) < μ_entropy(T=1.2)  for each prompt type
+```
+- This validates our measurement is working correctly
+- Not the interesting finding - it's mathematically required
+
+**H3: Interaction Effect (Key Theoretical Question)**
+
+Three possible scenarios:
+
+**Scenario A - Parallel Effects (Predicted):**
+```
+Δ_entropy(T) = constant across temperatures
+Both prompt types increase entropy proportionally
+→ Main effect is robust and temperature-independent
+```
+
+**Scenario B - Amplification:**
+```
+Δ_entropy(T) increases with T
+Vague prompts benefit more from exploration
+→ Specification prompts provide stronger distributional constraints
+```
+
+**Scenario C - Convergence:**
+```
+Δ_entropy(T) decreases with T
+At high temps, both explore full latent space
+→ Constraints matter less during exploration (limits generalizability)
+```
+
+**H4: MI-Entropy Correlation**
+```
+H₄: r(MI, Entropy) < 0  for all T ∈ {0.7, 1.0, 1.2}
+```
+- Expected: r strongest at T=1.0 (clean signal)
+- May be weaker at T=0.7 (restricted variance)
+- May be weaker at T=1.2 (noise from exploration)
+
+### Expected Effect Sizes
+
+Based on information theory:
+- **Main effect (H1)**: Cohen's d = 0.6-1.0 (medium to large)
+- **Temperature effect (H2)**: η² = 0.7-0.9 (large - guaranteed)
+- **Interaction (H3)**: If exists, η² = 0.1-0.3 (small to medium)
+
+### Statistical Power
+
+With N=30 samples per condition:
+- Power to detect d=0.8: >95% at α=0.05
+- Power to detect interaction: ~80% for η²=0.2
+
+### Multi-Temperature Study Design
+
+We test at **three strategic temperatures**:
+
+**Temperature Selection:**
+- **T=0.7** (Production): Real-world deployment, practical relevance
+- **T=1.0** (Baseline): Natural, unscaled probability distribution, theoretical purity
+- **T=1.2** (Exploration): Latent space exploration, robustness validation
+
+This design tests:
+1. **Production validity**: Does the effect hold in real-world settings? (0.7)
+2. **Theoretical soundness**: What is the effect at the pure distribution? (1.0)
+3. **Robustness**: Does the effect persist during latent exploration? (1.2)
 
 ```bash
-# Quick validation: baseline + one comparison
-make run-temperature-baseline EXPERIMENT=temp_validation
-# Tests: temp=0.7 (realistic) and temp=1.0 (baseline)
-
-# Full temperature study (WARNING: 5x time and cost)
+# Recommended: Full 3-temperature study (3x time/cost)
 make run-temperature-study EXPERIMENT=temp_comprehensive
-# Tests: temp=0.5, 0.7, 1.0, 1.2, 1.5 (symmetric around baseline)
+# Tests: temp=0.7, 1.0, 1.2 (production/baseline/exploration)
+
+# Alternative: Quick validation (baseline only)
+make run-experiment EXPERIMENT=baseline_only TEMPERATURE=1.0
+
+# Alternative: Baseline + production validation (2x cost)
+make run-temperature-baseline EXPERIMENT=production_validation
+# Tests: temp=0.7, 1.0
 
 # Small pilot study (3 tasks, 5 samples)
 make run-temperature-study-small EXPERIMENT=temp_pilot
 ```
 
-**Expected findings:**
-1. **Main effect holds**: Specification prompts reduce entropy across all three regimes
-2. **Production validity**: Effect is observable even at production temperatures (0.5-0.7)
-3. **Exploration amplification**: Effect may be stronger when exploring latent space (1.2-1.5)
-4. **MI-entropy correlation**: Negative correlation persists across temperature ranges
-5. **Theoretical robustness**: Baseline (1.0) provides the clearest signal while generalizing to other regimes
+### Predicted Outcomes
+
+**If H1 holds (main effect across temperatures):**
+- Specification prompts reduce entropy by d≈0.8 at all temperatures
+- Effect observable at production settings (T=0.7)
+- Strong claim: "Effect is robust across sampling regimes"
+
+**If Scenario A (parallel effects):**
+```
+Entropy difference: Δ ≈ 0.5-0.8 bits (constant)
+Claim: "Constraint is temperature-independent"
+```
+
+**If Scenario B (amplification):**
+```
+Δ_0.7 < Δ_1.0 < Δ_1.2
+Claim: "Effect amplifies during latent exploration"
+```
+
+**If H4 holds (MI-entropy correlation):**
+- r ≈ -0.6 to -0.7 at T=1.0
+- r ≈ -0.4 to -0.6 at T=0.7, T=1.2
+- Claim: "MI predicts entropy reduction"
+
+### Visual Prediction
+
+```
+Entropy (bits)
+  │
+  │     ○──○──○  Vague prompts
+  │    ╱
+  │   ╱
+  │  ╱
+  │ ●──●──●  Specification prompts
+  │
+  └────────────────> Temperature
+   0.7  1.0  1.2
+
+Expected: Parallel lines (Scenario A)
+          or diverging (Scenario B)
+```
 
 **Time & cost impact:**
-- Baseline (1 temp): ~2-3 hours, $30-50
-- Two temps (0.7, 1.0): ~4-6 hours, $60-100
-- Five temps (0.5, 0.7, 1.0, 1.2, 1.5): ~10-15 hours, $150-250
+- Baseline only (1 temp): ~2-3 hours, $30-50
+- Production + baseline (2 temps): ~4-6 hours, $60-100
+- **Recommended: Full study (3 temps): ~6-9 hours, $90-150**
 
-**Recommendation for budget-conscious research:**
-1. Run main experiment at **temperature=1.0** (baseline - theoretically sound)
-2. Run validation at **temperature=0.7** (production range - practical relevance)
-3. Optionally test **temperature=1.2** (latent space exploration - full range)
-4. Analyze how effect size varies across regimes
-5. Report all results to demonstrate:
-   - Theoretical validity (1.0)
-   - Production applicability (0.7)
-   - Robustness across sampling regimes
+**Why 3 temperatures is optimal:**
+1. ✓ Production validity (0.7)
+2. ✓ Theoretical purity (1.0)
+3. ✓ Robustness check (1.2)
+4. ✓ Can test for interaction effects
+5. ✓ Only 3x cost (vs 5x for full range)
 
 ## Experimental Design
 

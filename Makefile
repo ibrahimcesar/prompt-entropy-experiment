@@ -238,16 +238,16 @@ view-logs: ## View recent audit logs
 	@echo "Use: cat logs/<experiment>.jsonl | jq"
 	@echo "Or:  cat logs/<experiment>_summary.json | jq"
 
-run-temperature-study: ## Run experiment across multiple temperatures (WARNING: 5x time/cost)
+run-temperature-study: ## Run experiment across multiple temperatures (WARNING: 3x time/cost)
 	@echo "======================================"
 	@echo "  Multi-Temperature Study"
 	@echo "======================================"
 	@echo ""
 	@echo "⚠ WARNING: This runs the experiment at multiple temperatures"
-	@echo "  Default: 5 temperatures (0.5, 0.7, 1.0, 1.2, 1.5)"
-	@echo "  Symmetric design: 2 below baseline + baseline + 2 above"
-	@echo "  Time: ~10-15 hours total"
-	@echo "  Cost: ~5x baseline experiment ($150-250)"
+	@echo "  Default: 3 temperatures (0.7, 1.0, 1.2)"
+	@echo "  Design: Production / Baseline / Exploration"
+	@echo "  Time: ~6-9 hours total"
+	@echo "  Cost: ~3x baseline experiment ($90-150)"
 	@echo ""
 	@echo "For testing, use: make run-temperature-study-small"
 	@echo ""

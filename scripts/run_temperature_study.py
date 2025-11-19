@@ -106,8 +106,8 @@ def main():
         '--temperatures',
         nargs='+',
         type=float,
-        default=[0.5, 0.7, 1.0, 1.2, 1.5],
-        help='Temperature values to test (default: 0.5 0.7 1.0 1.2 1.5 - symmetric around baseline)'
+        default=[0.7, 1.0, 1.2],
+        help='Temperature values to test (default: 0.7 1.0 1.2 - production/baseline/exploration)'
     )
     parser.add_argument(
         '--config',
