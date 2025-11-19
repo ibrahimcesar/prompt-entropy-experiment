@@ -37,18 +37,24 @@ The dataset consists of **1,800 LLM generations** collected across:
 
 ### What is Temperature?
 
-**Temperature** is a parameter that controls how "creative" or "random" an LLM's outputs are.
+**Temperature** is a parameter that controls the randomness of LLM outputs by scaling the probability distribution before sampling.
 
-Think of it like this:
-- **Low temperature (0.0-0.5)**: The model is conservative and picks the most likely words
-  - More predictable, consistent outputs
-  - Like an expert giving their best answer
-  - Example: "The capital of France is Paris" (always the same)
+Think of it across three regimes:
 
-- **High temperature (1.0-2.0)**: The model is more adventurous and explores alternatives
-  - More diverse, creative outputs
-  - Like brainstorming multiple possibilities
-  - Example: "The capital of France is Paris / the City of Light / located along the Seine"
+- **Production range (0.3-0.7)**: Reliable, consistent outputs
+  - Model picks high-probability tokens
+  - Suitable for deterministic tasks (code generation, factual Q&A)
+  - Example at 0.3: "The capital of France is Paris" (highly consistent)
+
+- **Baseline (1.0)**: Natural probability distribution
+  - Unscaled sampling from model's learned distribution
+  - Represents the model's "natural" uncertainty
+  - Balances diversity with coherence
+
+- **Latent space exploration (1.2-1.5)**: Diverse, exploratory outputs
+  - Model explores lower-probability alternatives
+  - Reveals the full range of the model's knowledge
+  - Example at 1.5: Model may generate creative variations, alternative phrasings, or explore edge cases
 
 ### Why Temperature=1.0 is Our Baseline
 
@@ -71,28 +77,32 @@ We use **temperature=1.0** as the baseline for this research for three important
 - It balances realism with measurability
 - Findings at this temperature are more likely to generalize
 
-### The Trade-off: Realism vs. Measurability
+### The Trade-off: Production Realism vs. Theoretical Clarity
 
-**Real-world usage** often uses lower temperatures:
-- Production systems: temperature=0.3-0.7
-- Code generation: temperature=0.0-0.3
-- Creative writing: temperature=0.8-1.2
+**Real-world production systems** typically use **temperature=0.3-0.7**:
+- Code generation: 0.0-0.3 (highly deterministic)
+- Customer service: 0.3-0.5 (consistent, reliable)
+- Content generation: 0.5-0.7 (some variety)
 
-**Our research** uses temperature=1.0 because:
-- ✓ Better signal-to-noise ratio for detecting effects
-- ✓ Theoretical cleanness (unscaled probability distribution)
-- ✓ Generalizable baseline for comparison
+**Our research** uses **temperature=1.0** as the baseline because:
+- ✓ **Theoretical soundness**: Unscaled probability distribution
+- ✓ **Maximum signal**: Enough variance to detect entropy differences
+- ✓ **Generalizable**: Neither suppressed (production) nor amplified (exploration)
+- ✓ **Information-theoretic validity**: True measure of model's natural entropy
 
 ### Multi-Temperature Studies (Advanced)
 
 To ensure our findings are robust, we recommend testing at multiple temperatures **symmetrically around the baseline**:
 
 **Temperature Range:**
-- **Below baseline** (conservative): 0.5, 0.7
-- **At baseline** (natural): 1.0
-- **Above baseline** (creative): 1.2, 1.5
+- **Production range** (0.5, 0.7): Real-world deployment settings
+- **Baseline** (1.0): Natural, unscaled probability distribution
+- **Latent space exploration** (1.2, 1.5): Exploring model's full knowledge range
 
-This symmetric design allows us to test if the effect holds across the full spectrum of sampling regimes.
+This symmetric design tests three distinct regimes:
+1. **Production**: Does the effect hold in real-world settings?
+2. **Baseline**: What is the effect at the theoretically pure distribution?
+3. **Exploration**: Does the effect persist when exploring latent space?
 
 ```bash
 # Quick validation: baseline + one comparison
@@ -108,10 +118,11 @@ make run-temperature-study-small EXPERIMENT=temp_pilot
 ```
 
 **Expected findings:**
-1. **Main effect holds**: Specification prompts reduce entropy at ALL temperatures
-2. **Interaction effect**: The effect is stronger at higher temperatures
-3. **Robustness**: MI-entropy correlation is consistent across temperatures
-4. **Symmetry**: Effect should be observable both above and below baseline
+1. **Main effect holds**: Specification prompts reduce entropy across all three regimes
+2. **Production validity**: Effect is observable even at production temperatures (0.5-0.7)
+3. **Exploration amplification**: Effect may be stronger when exploring latent space (1.2-1.5)
+4. **MI-entropy correlation**: Negative correlation persists across temperature ranges
+5. **Theoretical robustness**: Baseline (1.0) provides the clearest signal while generalizing to other regimes
 
 **Time & cost impact:**
 - Baseline (1 temp): ~2-3 hours, $30-50
@@ -119,10 +130,14 @@ make run-temperature-study-small EXPERIMENT=temp_pilot
 - Five temps (0.5, 0.7, 1.0, 1.2, 1.5): ~10-15 hours, $150-250
 
 **Recommendation for budget-conscious research:**
-1. Run main experiment at temperature=1.0 (baseline)
-2. Run validation at temperature=0.7 (realistic setting)
-3. Analyze if the effect size changes significantly
-4. Report both results to show generalizability
+1. Run main experiment at **temperature=1.0** (baseline - theoretically sound)
+2. Run validation at **temperature=0.7** (production range - practical relevance)
+3. Optionally test **temperature=1.2** (latent space exploration - full range)
+4. Analyze how effect size varies across regimes
+5. Report all results to demonstrate:
+   - Theoretical validity (1.0)
+   - Production applicability (0.7)
+   - Robustness across sampling regimes
 
 ## Experimental Design
 
