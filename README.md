@@ -5,6 +5,8 @@
   
 </div>
 
+![Speaking Head emoji from Microsoft Teams (3D Animated) (2024)](./speaking-head_1f5e3-fe0f.png)
+
 # Prompt Entropy Experiment
 
 Empirical validation of information-theoretic principles in prompt engineering for generative AI systems.
