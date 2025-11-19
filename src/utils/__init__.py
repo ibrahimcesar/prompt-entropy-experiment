@@ -30,6 +30,12 @@ from .data_utils import (
     aggregate_by_key,
 )
 
+from .audit_logger import (
+    AuditLogger,
+    get_logger,
+    set_logger,
+)
+
 __all__ = [
     # I/O utilities
     'save_json',
@@ -55,4 +61,8 @@ __all__ = [
     'min_max_normalize',
     'sliding_window',
     'aggregate_by_key',
+    # Audit logging
+    'AuditLogger',
+    'get_logger',
+    'set_logger',
 ]

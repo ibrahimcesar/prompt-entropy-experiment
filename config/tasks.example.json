@@ -1,0 +1,47 @@
+{
+  "tasks": [
+    {
+      "id": 0,
+      "domain": "technical_programming",
+      "description": "Write a binary search function",
+      "prompts": {
+        "specification": "Write a Python function named 'binary_search' that:\n- Takes parameters: sorted_list (List[int]), target (int)\n- Returns: int (index of target or -1 if not found)\n- Must handle: empty lists, single elements, duplicates\n- Time complexity: O(log n)\n- Include: type hints and docstring\n- Format: Follow PEP 8 style guide",
+        "vague": "Write a search function."
+      },
+      "expected_elements": ["def", "binary_search", "return"],
+      "required_components": ["function", "search"],
+      "format_requirements": {
+        "has_code": true,
+        "min_length": 50
+      }
+    },
+    {
+      "id": 1,
+      "domain": "data_analysis",
+      "description": "Analyze sales data trends",
+      "prompts": {
+        "specification": "Analyze quarterly sales data:\n- Dataset: sales_data.csv with columns [quarter, revenue, units]\n- Calculate: YoY growth rate, trend analysis, seasonal patterns\n- Output format: Markdown table with statistics\n- Include: Mean, median, std dev for each metric\n- Visualize: Describe chart types needed\n- Constraints: Must handle missing values",
+        "vague": "Analyze the sales data."
+      },
+      "expected_elements": ["growth", "trend", "analysis"],
+      "required_components": ["statistics", "data"],
+      "format_requirements": {
+        "min_length": 100
+      }
+    },
+    {
+      "id": 2,
+      "domain": "technical_writing",
+      "description": "Write API documentation",
+      "prompts": {
+        "specification": "Write API documentation for a REST endpoint:\n- Endpoint: POST /api/users\n- Purpose: Create new user account\n- Request body: JSON with fields (username, email, password)\n- Response: 201 Created with user object, or error codes\n- Include: Authentication requirements, rate limits, example request/response\n- Format: OpenAPI 3.0 specification\n- Must document: All error codes (400, 401, 409, 429, 500)",
+        "vague": "Write API documentation."
+      },
+      "expected_elements": ["endpoint", "request", "response"],
+      "required_components": ["API", "documentation"],
+      "format_requirements": {
+        "min_length": 150
+      }
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-.PHONY: help install test lint paper clean setup check-env
+.PHONY: help install test lint paper clean setup check-env collect-data calculate-metrics run-experiment view-logs
 .DEFAULT_GOAL := help
 
 help: ## Show this help message
@@ -159,6 +159,84 @@ figures: ## Generate all figures
 	@echo "Generating figures..."
 	@echo "⚠ Not yet implemented - add figure generation script"
 	@echo "Suggestion: Create scripts/generate_figures.py"
+
+# ============================================================================
+# Experimental Workflow (with Audit Logging)
+# ============================================================================
+
+EXPERIMENT ?= $(shell date +%Y%m%d_%H%M%S)
+CONFIG ?= config/tasks.example.json
+MODELS ?= gpt-4 claude-3.5-sonnet
+PROMPT_TYPES ?= specification vague
+N_SAMPLES ?= 30
+TEMPERATURE ?= 1.0
+
+collect-data: ## Collect LLM responses with full audit logging
+	@echo "Starting data collection: $(EXPERIMENT)"
+	@echo "Config: $(CONFIG)"
+	@echo "Models: $(MODELS)"
+	@python scripts/collect_data.py \
+		--experiment $(EXPERIMENT) \
+		--config $(CONFIG) \
+		--models $(MODELS) \
+		--prompt-types $(PROMPT_TYPES) \
+		--n-samples $(N_SAMPLES) \
+		--temperature $(TEMPERATURE)
+	@echo ""
+	@echo "✓ Data collection complete"
+	@echo "Review audit log: logs/$(EXPERIMENT).jsonl"
+
+collect-sample: ## Collect small sample (3 tasks, 5 samples) for testing
+	@echo "Collecting test sample..."
+	@python scripts/collect_data.py \
+		--experiment $(EXPERIMENT)_sample \
+		--config $(CONFIG) \
+		--task-ids 0 1 2 \
+		--models gpt-4 \
+		--prompt-types specification \
+		--n-samples 5 \
+		--temperature $(TEMPERATURE)
+	@echo "✓ Sample collection complete"
+
+calculate-metrics: ## Calculate entropy and MI metrics with audit logging
+	@echo "Calculating metrics: $(EXPERIMENT)_metrics"
+	@python scripts/calculate_metrics.py \
+		--experiment $(EXPERIMENT)_metrics \
+		--input-dir data/raw \
+		--output-dir data/processed
+	@echo ""
+	@echo "✓ Metrics calculation complete"
+	@echo "Review audit log: logs/$(EXPERIMENT)_metrics.jsonl"
+	@echo "Results: data/processed/metrics_summary.csv"
+
+run-experiment: init-env ## Run complete experiment (collect + metrics)
+	@echo "======================================"
+	@echo "  Running Complete Experiment"
+	@echo "======================================"
+	@echo ""
+	@echo "Experiment ID: $(EXPERIMENT)"
+	@echo ""
+	@$(MAKE) collect-data EXPERIMENT=$(EXPERIMENT)
+	@echo ""
+	@$(MAKE) calculate-metrics EXPERIMENT=$(EXPERIMENT)
+	@echo ""
+	@echo "======================================"
+	@echo "✓ Experiment Complete!"
+	@echo "======================================"
+	@echo ""
+	@echo "Audit logs:"
+	@ls -lh logs/$(EXPERIMENT)*.jsonl 2>/dev/null || echo "  No logs found"
+	@echo ""
+	@echo "Results:"
+	@ls -lh data/processed/*.csv 2>/dev/null || echo "  No results found"
+
+view-logs: ## View recent audit logs
+	@echo "Recent audit logs:"
+	@echo ""
+	@ls -lt logs/*.jsonl 2>/dev/null | head -10 || echo "No logs found"
+	@echo ""
+	@echo "Use: cat logs/<experiment>.jsonl | jq"
+	@echo "Or:  cat logs/<experiment>_summary.json | jq"
 
 # ============================================================================
 # Documentation

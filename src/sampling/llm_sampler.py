@@ -1,5 +1,5 @@
 """
-LLM sampling utilities for GPT-4 and Claude-3 Opus
+LLM sampling utilities for GPT-4 and Claude models
 """
 
 import os
@@ -18,7 +18,15 @@ except ImportError:
     Anthropic = None
 
 
-ModelType = Literal["gpt-4", "gpt-4-turbo", "claude-3-opus", "claude-3-sonnet"]
+ModelType = Literal[
+    "gpt-4",
+    "gpt-4-turbo",
+    "gpt-4o",
+    "claude-3-opus",
+    "claude-3-sonnet",
+    "claude-3.5-sonnet",
+    "claude-3.5-haiku",
+]
 
 
 def sample_responses(
@@ -128,6 +136,8 @@ def _sample_anthropic(
     model_map = {
         "claude-3-opus": "claude-3-opus-20240229",
         "claude-3-sonnet": "claude-3-sonnet-20240229",
+        "claude-3.5-sonnet": "claude-3-5-sonnet-20241022",
+        "claude-3.5-haiku": "claude-3-5-haiku-20241022",
     }
     api_model = model_map.get(model, model)
 
