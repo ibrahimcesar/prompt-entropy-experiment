@@ -1,4 +1,4 @@
-.PHONY: help install test lint paper clean setup check-env collect-data calculate-metrics run-experiment view-logs
+.PHONY: help install test lint paper clean setup check-env collect-data calculate-metrics run-experiment view-logs run-temperature-study run-temperature-study-small run-temperature-baseline
 .DEFAULT_GOAL := help
 
 help: ## Show this help message
@@ -237,6 +237,48 @@ view-logs: ## View recent audit logs
 	@echo ""
 	@echo "Use: cat logs/<experiment>.jsonl | jq"
 	@echo "Or:  cat logs/<experiment>_summary.json | jq"
+
+run-temperature-study: ## Run experiment across multiple temperatures (WARNING: 4x time/cost)
+	@echo "======================================"
+	@echo "  Multi-Temperature Study"
+	@echo "======================================"
+	@echo ""
+	@echo "⚠ WARNING: This runs the experiment at multiple temperatures"
+	@echo "  Default: 4 temperatures (0.5, 0.7, 1.0, 1.2)"
+	@echo "  Time: ~8-12 hours total"
+	@echo "  Cost: ~4x baseline experiment"
+	@echo ""
+	@echo "For testing, use: make run-temperature-study-small"
+	@echo ""
+	@read -p "Continue? [y/N] " -n 1 -r; \
+	echo; \
+	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
+		python scripts/run_temperature_study.py \
+			--experiment $(EXPERIMENT) \
+			--config $(CONFIG) \
+			--models $(MODELS) \
+			--n-samples $(N_SAMPLES); \
+	else \
+		echo "Cancelled."; \
+	fi
+
+run-temperature-study-small: ## Run temperature study on small subset (3 tasks, 5 samples)
+	@echo "Running small temperature study (test)..."
+	@python scripts/run_temperature_study.py \
+		--experiment $(EXPERIMENT)_small \
+		--config $(CONFIG) \
+		--temperatures 0.7 1.0 1.2 \
+		--models gpt-4 \
+		--n-samples 5
+
+run-temperature-baseline: ## Run just baseline (temp=1.0) + one comparison (temp=0.7)
+	@echo "Running baseline + comparison study..."
+	@python scripts/run_temperature_study.py \
+		--experiment $(EXPERIMENT)_baseline \
+		--config $(CONFIG) \
+		--temperatures 0.7 1.0 \
+		--models $(MODELS) \
+		--n-samples $(N_SAMPLES)
 
 # ============================================================================
 # Documentation

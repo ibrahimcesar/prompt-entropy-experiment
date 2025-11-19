@@ -33,6 +33,89 @@ The dataset consists of **1,800 LLM generations** collected across:
 
 **All data collection uses Makefile commands with full audit logging for reproducibility.**
 
+## Understanding Temperature in LLM Sampling
+
+### What is Temperature?
+
+**Temperature** is a parameter that controls how "creative" or "random" an LLM's outputs are.
+
+Think of it like this:
+- **Low temperature (0.0-0.5)**: The model is conservative and picks the most likely words
+  - More predictable, consistent outputs
+  - Like an expert giving their best answer
+  - Example: "The capital of France is Paris" (always the same)
+
+- **High temperature (1.0-2.0)**: The model is more adventurous and explores alternatives
+  - More diverse, creative outputs
+  - Like brainstorming multiple possibilities
+  - Example: "The capital of France is Paris / the City of Light / located along the Seine"
+
+### Why Temperature=1.0 is Our Baseline
+
+We use **temperature=1.0** as the baseline for this research for three important reasons:
+
+**1. Natural Entropy (Theoretical Soundness)**
+- At temperature=1.0, we sample directly from the model's learned probability distribution
+- This represents the model's "natural" or "unmodified" uncertainty
+- It's neither artificially reduced (temp<1.0) nor amplified (temp>1.0)
+- This gives us a true measure of the information-theoretic properties we're studying
+
+**2. Maximum Signal Detection (Statistical Power)**
+- Higher diversity in outputs makes differences between conditions easier to detect
+- With low temperature (e.g., 0.3), all outputs might be too similar
+- We might miss the effect of prompt quality on entropy
+- At temperature=1.0, we have enough variance to measure meaningful differences
+
+**3. Generalizability Across Sampling Regimes**
+- Temperature=1.0 is neither extreme nor conservative
+- It balances realism with measurability
+- Findings at this temperature are more likely to generalize
+
+### The Trade-off: Realism vs. Measurability
+
+**Real-world usage** often uses lower temperatures:
+- Production systems: temperature=0.3-0.7
+- Code generation: temperature=0.0-0.3
+- Creative writing: temperature=0.8-1.2
+
+**Our research** uses temperature=1.0 because:
+- ✓ Better signal-to-noise ratio for detecting effects
+- ✓ Theoretical cleanness (unscaled probability distribution)
+- ✓ Generalizable baseline for comparison
+
+### Multi-Temperature Studies (Advanced)
+
+To ensure our findings are robust, we recommend testing at multiple temperatures:
+
+```bash
+# Quick validation: baseline + one comparison
+make run-temperature-baseline EXPERIMENT=temp_validation
+# Tests: temp=0.7 (realistic) and temp=1.0 (baseline)
+
+# Full temperature study (WARNING: 4x time and cost)
+make run-temperature-study EXPERIMENT=temp_comprehensive
+# Tests: temp=0.5, 0.7, 1.0, 1.2
+
+# Small pilot study (3 tasks, 5 samples)
+make run-temperature-study-small EXPERIMENT=temp_pilot
+```
+
+**Expected findings:**
+1. **Main effect holds**: Specification prompts reduce entropy at ALL temperatures
+2. **Interaction effect**: The effect is stronger at higher temperatures
+3. **Robustness**: MI-entropy correlation is consistent across temperatures
+
+**Time & cost impact:**
+- Baseline (1 temp): ~2-3 hours, $30-50
+- Two temps (0.7, 1.0): ~4-6 hours, $60-100
+- Four temps (0.5, 0.7, 1.0, 1.2): ~8-12 hours, $120-200
+
+**Recommendation for budget-conscious research:**
+1. Run main experiment at temperature=1.0 (baseline)
+2. Run validation at temperature=0.7 (realistic setting)
+3. Analyze if the effect size changes significantly
+4. Report both results to show generalizability
+
 ## Experimental Design
 
 ### Domains and Tasks
